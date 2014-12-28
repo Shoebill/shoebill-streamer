@@ -1,0 +1,7 @@
+class: net.gtaun.shoebill.Streamer
+name: Streamer for Shoebill
+version: 1.0-SNAPSHOT
+buildNumber: 0
+buildDate: Unknown
+authors: 123marvin123
+description: A simple object streamer for Shoebill
