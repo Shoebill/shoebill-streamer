@@ -1,8 +1,8 @@
 package net.gtaun.shoebill.data;
 
-import net.gtaun.shoebill.DynamicSampObject;
 import net.gtaun.shoebill.constant.ObjectMaterialSize;
 import net.gtaun.shoebill.constant.ObjectMaterialTextAlign;
+import net.gtaun.shoebill.object.DynamicSampObject;
 
 // Created by marvin on 28.12.14 in project shoebill-streamer.
 // Copyright (c) 2014 Marvin Haschker. All rights reserved.

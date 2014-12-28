@@ -1,26 +1,51 @@
-package net.gtaun.shoebill;
+package net.gtaun.shoebill.object;
+
+import net.gtaun.shoebill.DynamicObjectPool;
 import net.gtaun.shoebill.constant.ObjectMaterialSize;
 import net.gtaun.shoebill.constant.ObjectMaterialTextAlign;
 import net.gtaun.shoebill.data.*;
-import net.gtaun.shoebill.object.Destroyable;
-import net.gtaun.shoebill.object.Player;
-import net.gtaun.shoebill.object.Vehicle;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 
 // Created by marvin on 27.12.14 in project shoebill-streamer.
 // Copyright (c) 2014 Marvin Haschker. All rights reserved.
-public interface DynamicSampObject extends Destroyable {
+public interface DynamicSampObject extends Destroyable, Updateable {
 
     public static int INVALID_ID = -1;
+    static DynamicObjectPool<DynamicSampObject> objectPool = new DynamicObjectPool<>();
 
+    /**
+     * Creates an dynamic samp object.
+     * @param modelId The modelid of the object
+     * @param x X-Cord
+     * @param y Y-Cord
+     * @param z Z-Cord
+     * @param rX Rotation-X
+     * @param rY Rotation-Y
+     * @param rZ Rotation-Z
+     * @param worldId In which world the object should be visible
+     * @param interiorId In which interior the object should be visible
+     * @param streamDistance When the object should be created for the player
+     * @param drawDistance From how far the object should be visible (viewDistance)
+     * @return The created object
+     */
     public static DynamicSampObject create(int modelId, float x, float y, float z, float rX, float rY, float rZ,
                                                 int worldId, int interiorId, float streamDistance, float drawDistance) {
         return new DynamicSampObjectImpl(modelId, x, y, z, rX, rY, rZ, (worldId == -1) ? 0 : worldId, (interiorId == -1) ? 0 : interiorId,
                 (streamDistance == 0.0) ? 200f : streamDistance, drawDistance);
     }
 
-    public static DynamicSampObject create(int modelId, Location location, Vector3D rotation, float streamDistance, float drawDistance) {
+    /**
+     * Creates an dynamic samp object.
+     * @param modelId The modelid of the object
+     * @param location The location of the object (x, y, z, interior, world)
+     * @param rotation The rotation of the object (x, y, z)
+     * @param streamDistance When the object should be created for the player
+     * @param drawDistance From how far the object should be visible (viewDistance)
+     * @return The created object
+     */
+    public static DynamicSampObject create(int modelId, @Nonnull Location location, @Nonnull Vector3D rotation, float streamDistance, float drawDistance) {
         return new DynamicSampObjectImpl(modelId, location.x, location.y, location.z, rotation.x, rotation.y, rotation.z,
                 location.worldId, location.interiorId, streamDistance, drawDistance);
     }
@@ -66,6 +91,4 @@ public interface DynamicSampObject extends Destroyable {
 
     Collection<PlayerDynamicObjectMaterial> getObjectMaterial();
     Collection<PlayerDynamicObjectMaterialText> getObjectMaterialText();
-
-    void update();
 }

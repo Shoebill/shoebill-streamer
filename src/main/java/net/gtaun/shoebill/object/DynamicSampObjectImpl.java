@@ -1,5 +1,7 @@
-package net.gtaun.shoebill;
+package net.gtaun.shoebill.object;
 
+import net.gtaun.shoebill.Shoebill;
+import net.gtaun.shoebill.Streamer;
 import net.gtaun.shoebill.constant.ObjectMaterialSize;
 import net.gtaun.shoebill.constant.ObjectMaterialTextAlign;
 import net.gtaun.shoebill.data.*;
@@ -7,9 +9,6 @@ import net.gtaun.shoebill.event.destroyable.DestroyEvent;
 import net.gtaun.shoebill.event.object.PlayerObjectMovedEvent;
 import net.gtaun.shoebill.event.player.PlayerDisconnectEvent;
 import net.gtaun.shoebill.event.player.PlayerUpdateEvent;
-import net.gtaun.shoebill.object.Player;
-import net.gtaun.shoebill.object.PlayerObject;
-import net.gtaun.shoebill.object.Vehicle;
 import net.gtaun.util.event.Attentions;
 import net.gtaun.util.event.EventManager;
 import net.gtaun.util.event.EventManagerNode;
@@ -20,22 +19,17 @@ import java.util.*;
 // Created by marvin on 27.12.14 in project shoebill-streamer.
 // Copyright (c) 2014 Marvin Haschker. All rights reserved.
 class DynamicSampObjectImpl implements DynamicSampObject {
-
-    static Queue<Integer> availableIds;
-    static List<DynamicSampObjectImpl> dynamicSampObjects;
-    static EventManager eventManager;
-    private static int allocatedObjects = -1;
-
+    private static EventManager eventManager = Shoebill.get().getResourceManager().getPlugin(Streamer.class).getEventManager();
     private int modelId, id = INVALID_ID;
     private Location location;
     private Vector3D rotation;
     private float streamDistance, drawDistance;
     private EventManagerNode eventManagerNode;
-    private WeakHashMap<Player, PlayerObject> playerObjects;
     private List<Player> movingObjectsForPlayer;
     private EventManagerNode stopEventNode;
     private WeakHashMap<Integer, PlayerDynamicObjectMaterial> objectMaterial;
     private WeakHashMap<Integer, PlayerDynamicObjectMaterialText> objectMaterialText;
+    private WeakHashMap<Player, PlayerObject> visibleObjects;
 
     public DynamicSampObjectImpl(int modelId, float x, float y, float z, float rX, float rY, float rZ,
                                  int worldId, int interiorId, float streamDistance, float drawDistance) {
@@ -45,16 +39,13 @@ class DynamicSampObjectImpl implements DynamicSampObject {
         this.rotation = new Vector3D(rX, rY, rZ);
         this.location = new Location(x, y, z, interiorId, worldId);
         this.movingObjectsForPlayer = new ArrayList<>();
-        if(availableIds.size() > 0)
-            this.id = availableIds.poll();
-        else
-            this.id = ++allocatedObjects;
-        this.playerObjects = new WeakHashMap<>();
-        DynamicSampObjectImpl.dynamicSampObjects.add(this);
+        this.id = objectPool.pullId();
+        objectPool.addObject(this);
         this.eventManagerNode = DynamicSampObjectImpl.eventManager.createChildNode();
         this.stopEventNode = eventManagerNode.createChildNode();
         this.objectMaterial = new WeakHashMap<>();
         this.objectMaterialText = new WeakHashMap<>();
+        this.visibleObjects = new WeakHashMap<>();
         eventManager.registerHandler(PlayerUpdateEvent.class, playerUpdateEvent -> {
             Player player = playerUpdateEvent.getPlayer();
             Location playerLocation = player.getLocation();
@@ -64,17 +55,17 @@ class DynamicSampObjectImpl implements DynamicSampObject {
     }
 
     private void destroyAllPlayerObjects(Player player) {
-        playerObjects.entrySet().stream().filter(entry -> entry.getKey() == player && !entry.getValue().isDestroyed()).forEach(entry -> entry.getValue().destroy());
-        playerObjects.remove(player);
+        visibleObjects.entrySet().stream().filter(entry -> entry.getKey() == player && !entry.getValue().isDestroyed()).forEach(entry -> entry.getValue().destroy());
+        visibleObjects.remove(player);
     }
 
     private void destroyAllVisibleObjects() {
-        playerObjects.entrySet().stream().filter(entry -> !entry.getValue().isDestroyed()).forEach(entry -> entry.getValue().destroy());
-        playerObjects.clear();
+        visibleObjects.entrySet().stream().filter(entry -> !entry.getValue().isDestroyed()).forEach(entry -> entry.getValue().destroy());
+        visibleObjects.clear();
     }
 
     private void createAndDeleteObject(Player player, Location playerLocation) {
-        Iterator<Map.Entry<Player, PlayerObject>> playerObjectIterator = playerObjects.entrySet().iterator();
+        Iterator<Map.Entry<Player, PlayerObject>> playerObjectIterator = visibleObjects.entrySet().iterator();
         while(playerObjectIterator.hasNext()) {
             Map.Entry<Player, PlayerObject> entry = playerObjectIterator.next();
             if(streamDistance < location.distance(playerLocation) && entry.getKey() == player) {
@@ -83,7 +74,7 @@ class DynamicSampObjectImpl implements DynamicSampObject {
                 return;
             }
         }
-        if(playerObjects.containsKey(player))
+        if(visibleObjects.containsKey(player))
             return;
         if(location.distance(playerLocation) <= streamDistance)
             createPlayerObject(player);
@@ -91,7 +82,7 @@ class DynamicSampObjectImpl implements DynamicSampObject {
 
     private void createPlayerObject(Player player) {
         PlayerObject pObject = PlayerObject.create(player, modelId, location, rotation, drawDistance);
-        playerObjects.put(player, pObject);
+        visibleObjects.put(player, pObject);
         objectMaterial.entrySet().forEach(set -> {
             PlayerDynamicObjectMaterial material = set.getValue();
             pObject.setMaterial(set.getKey(), material.getModelId(), material.getTxdName(), material.getTextureName(), material.getColor());
@@ -101,18 +92,20 @@ class DynamicSampObjectImpl implements DynamicSampObject {
             pObject.setMaterialText(text.getText(), set.getKey(), text.getMaterialSize(), text.getFontFace(), text.getFontSize(), text.isBold(), text.getFontColor(), text.getBackColor(),
                                     text.getTextAlignment());
         });
-        System.out.println("Created obj " + id + " for " + player.getName());
     }
 
-    public static DynamicSampObjectImpl get(int id) {
-        if(id >= dynamicSampObjects.size())
+    public static DynamicSampObject get(int id) {
+        if(id >= objectPool.getObjectAmount())
             return null;
-        return dynamicSampObjects.get(id);
+        return objectPool.getObject(id);
     }
 
     static void destroyAll() {
-        dynamicSampObjects.stream().filter(obj -> !obj.isDestroyed()).forEach(DynamicSampObjectImpl::destroy);
-        dynamicSampObjects.clear();
+        List<DynamicSampObject> copyOfObjects = new ArrayList<>(objectPool.getAllObjects());
+        Collections.copy(copyOfObjects, objectPool.getAllObjects());
+        copyOfObjects.stream().filter(obj -> obj != null && !obj.isDestroyed()).forEach(Destroyable::destroy);
+        objectPool.clearAllObjects();
+        copyOfObjects.clear();
     }
 
     @Override
@@ -174,7 +167,7 @@ class DynamicSampObjectImpl implements DynamicSampObject {
     public void moveObject(float x, float y, float z, float speed, float rX, float rY, float rZ) {
         stopEventNode.cancelAll();
         movingObjectsForPlayer.clear();
-        playerObjects.entrySet().stream().filter(set -> !set.getValue().isDestroyed()).forEach(set -> {
+        visibleObjects.entrySet().stream().filter(set -> !set.getValue().isDestroyed()).forEach(set -> {
             set.getValue().move(x, y, z, speed, rX, rY, rZ);
             movingObjectsForPlayer.add(set.getKey());
             stopEventNode.registerHandler(PlayerObjectMovedEvent.class, HandlerPriority.HIGH, Attentions.create().object(set.getValue()), (e) -> {
@@ -217,13 +210,13 @@ class DynamicSampObjectImpl implements DynamicSampObject {
 
     @Override
     public void attachCameraToObject(Player player) {
-        playerObjects.entrySet().stream().filter(set -> !set.getValue().isDestroyed() && set.getKey() == player)
+        visibleObjects.entrySet().stream().filter(set -> !set.getValue().isDestroyed() && set.getKey() == player)
                 .forEach(set -> set.getValue().attachCamera(player));
     }
 
     @Override
     public void attachObjectToVehicle(Vehicle vehicle, float offsetX, float offsetY, float offsetZ, float rX, float rY, float rZ) {
-        playerObjects.entrySet().stream().filter(set -> !set.getValue().isDestroyed())
+        visibleObjects.entrySet().stream().filter(set -> !set.getValue().isDestroyed())
                 .forEach(set -> set.getValue().attach(vehicle, offsetX, offsetY, offsetZ, rX, rY, rZ));
     }
 
@@ -234,7 +227,7 @@ class DynamicSampObjectImpl implements DynamicSampObject {
 
     @Override
     public void editObject(Player player) {
-        playerObjects.entrySet().stream().filter(set -> !set.getValue().isDestroyed() && set.getKey() == player)
+        visibleObjects.entrySet().stream().filter(set -> !set.getValue().isDestroyed() && set.getKey() == player)
                 .forEach(set -> set.getKey().editPlayerObject(set.getValue()));
     }
 
@@ -268,7 +261,7 @@ class DynamicSampObjectImpl implements DynamicSampObject {
     @Override
     public void update() {
         Collection<Player> oldPlayers = new ArrayList<>();
-        playerObjects.entrySet().stream().filter(obj -> !obj.getValue().isDestroyed()).forEach(obj -> oldPlayers.add(obj.getKey()));
+        visibleObjects.entrySet().stream().filter(obj -> !obj.getValue().isDestroyed()).forEach(obj -> oldPlayers.add(obj.getKey()));
         destroyAllVisibleObjects();
         oldPlayers.stream().forEach(player -> createAndDeleteObject(player, player.getLocation()));
         oldPlayers.clear();
@@ -277,8 +270,8 @@ class DynamicSampObjectImpl implements DynamicSampObject {
     @Override
     public void destroy() {
         destroyAllVisibleObjects();
-        availableIds.offer(this.id);
-        dynamicSampObjects.remove(this);
+        objectPool.recycleId(this.id);
+        objectPool.removeObject(this);
         objectMaterial.clear();
         objectMaterialText.clear();
         stopEventNode.destroy();
