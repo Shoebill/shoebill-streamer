@@ -1,10 +1,17 @@
 package net.gtaun.shoebill;
 
-import java.util.*;
+import net.gtaun.shoebill.data.Updateable;
+import net.gtaun.shoebill.object.Destroyable;
+import net.gtaun.shoebill.object.Player;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 // Created by marvin on 28.12.14 in project shoebill-streamer.
 // Copyright (c) 2014 Marvin Haschker. All rights reserved.
-public class DynamicObjectPool<E> {
+public class DynamicObjectPool<E extends Destroyable & Updateable> {
     private Queue<Integer> availableIds;
 
     private List<E> objects;
@@ -50,5 +57,7 @@ public class DynamicObjectPool<E> {
         objects.clear();
     }
 
-    public Iterator<E> getIterator() { return objects.iterator(); }
+    public void update(Player player) {
+        objects.stream().filter(obj -> obj != null && !obj.isDestroyed()).forEach(obj -> obj.updatePlayer(player));
+    }
 }

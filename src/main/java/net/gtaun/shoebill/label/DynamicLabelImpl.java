@@ -6,7 +6,6 @@ import net.gtaun.shoebill.data.Color;
 import net.gtaun.shoebill.data.Location;
 import net.gtaun.shoebill.event.destroyable.DestroyEvent;
 import net.gtaun.shoebill.event.player.PlayerDisconnectEvent;
-import net.gtaun.shoebill.event.player.PlayerUpdateEvent;
 import net.gtaun.shoebill.object.Player;
 import net.gtaun.shoebill.object.PlayerLabel;
 import net.gtaun.shoebill.object.Vehicle;
@@ -33,15 +32,6 @@ class DynamicLabelImpl implements DynamicLabel {
     private WeakHashMap<Player, PlayerLabel> visibleLabels;
 
 
-    public DynamicLabelImpl(String text, Color color, float x, float y, float z, float drawDistance, float streamDistance, int worldId, int interiorId, boolean testLOS) {
-        this(text, color, x, y, z, drawDistance, null, null, streamDistance, worldId, interiorId, testLOS);
-    }
-
-    public DynamicLabelImpl(String text, Color color, float x, float y, float z, float drawDistance, Player attachedPlayer, Vehicle attachedVehicle,
-                            float streamDistance, int worldId, int interiorId, boolean testLOS) {
-        this(text, color, attachedPlayer, attachedVehicle, new Location(x, y, z, interiorId, worldId), drawDistance, streamDistance, testLOS);
-    }
-
     public DynamicLabelImpl(String text, Color color, Player attachedPlayer, Vehicle attachedVehicle, Location location,
                             float drawDistance, float streamDistance, boolean testLOS) {
         this.text = text;
@@ -55,28 +45,7 @@ class DynamicLabelImpl implements DynamicLabel {
         this.eventManagerNode = eventManager.createChildNode();
         this.id = objectPool.pullId();
         this.visibleLabels = new WeakHashMap<>();
-        eventManagerNode.registerHandler(PlayerUpdateEvent.class, (e) -> {
-            Player player = e.getPlayer();
-            Location playerLocation = player.getLocation();
-            createAndDeleteLabel(player, playerLocation);
-        });
         eventManagerNode.registerHandler(PlayerDisconnectEvent.class, (e) -> removeLabelForPlayer(e.getPlayer()));
-    }
-
-    private void createAndDeleteLabel(Player player, Location playerLocation) {
-        Iterator<Map.Entry<Player, PlayerLabel>> playerLabelIterator = visibleLabels.entrySet().iterator();
-        while(playerLabelIterator.hasNext()) {
-            Map.Entry<Player, PlayerLabel> entry = playerLabelIterator.next();
-            if(streamDistance < location.distance(playerLocation) && entry.getKey() == player) {
-                entry.getValue().destroy();
-                playerLabelIterator.remove();
-                return;
-            }
-        }
-        if(visibleLabels.containsKey(player))
-            return;
-        if(location.distance(playerLocation) <= streamDistance)
-            createPlayerLabel(player);
     }
 
     private void createPlayerLabel(Player player) {
@@ -174,6 +143,24 @@ class DynamicLabelImpl implements DynamicLabel {
     }
 
     @Override
+    public void updatePlayer(Player player) {
+        Location playerLocation = player.getLocation().clone();
+        Iterator<Map.Entry<Player, PlayerLabel>> playerLabelIterator = visibleLabels.entrySet().iterator();
+        while(playerLabelIterator.hasNext()) {
+            Map.Entry<Player, PlayerLabel> entry = playerLabelIterator.next();
+            if(streamDistance < location.distance(playerLocation) && entry.getKey() == player) {
+                entry.getValue().destroy();
+                playerLabelIterator.remove();
+                return;
+            }
+        }
+        if(visibleLabels.containsKey(player))
+            return;
+        if(location.distance(playerLocation) <= streamDistance)
+            createPlayerLabel(player);
+    }
+
+    @Override
     public void destroy() {
         destroyAllVisibleLabels();
         objectPool.recycleId(this.id);
@@ -201,7 +188,7 @@ class DynamicLabelImpl implements DynamicLabel {
         Collection<Player> oldPlayers = new ArrayList<>();
         visibleLabels.entrySet().stream().filter(obj -> !obj.getValue().isDestroyed()).forEach(obj -> oldPlayers.add(obj.getKey()));
         destroyAllVisibleLabels();
-        oldPlayers.stream().forEach(player -> createAndDeleteLabel(player, player.getLocation()));
+        oldPlayers.stream().forEach(this::updatePlayer);
         oldPlayers.clear();
     }
 

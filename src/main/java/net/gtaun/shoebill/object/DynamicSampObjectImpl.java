@@ -8,7 +8,6 @@ import net.gtaun.shoebill.data.*;
 import net.gtaun.shoebill.event.destroyable.DestroyEvent;
 import net.gtaun.shoebill.event.object.PlayerObjectMovedEvent;
 import net.gtaun.shoebill.event.player.PlayerDisconnectEvent;
-import net.gtaun.shoebill.event.player.PlayerUpdateEvent;
 import net.gtaun.util.event.Attentions;
 import net.gtaun.util.event.EventManager;
 import net.gtaun.util.event.EventManagerNode;
@@ -46,11 +45,6 @@ class DynamicSampObjectImpl implements DynamicSampObject {
         this.objectMaterial = new WeakHashMap<>();
         this.objectMaterialText = new WeakHashMap<>();
         this.visibleObjects = new WeakHashMap<>();
-        eventManager.registerHandler(PlayerUpdateEvent.class, playerUpdateEvent -> {
-            Player player = playerUpdateEvent.getPlayer();
-            Location playerLocation = player.getLocation();
-            createAndDeleteObject(player, playerLocation);
-        });
         eventManager.registerHandler(PlayerDisconnectEvent.class, playerDisconnectEvent -> destroyAllPlayerObjects(playerDisconnectEvent.getPlayer()));
     }
 
@@ -62,22 +56,6 @@ class DynamicSampObjectImpl implements DynamicSampObject {
     private void destroyAllVisibleObjects() {
         visibleObjects.entrySet().stream().filter(entry -> !entry.getValue().isDestroyed()).forEach(entry -> entry.getValue().destroy());
         visibleObjects.clear();
-    }
-
-    private void createAndDeleteObject(Player player, Location playerLocation) {
-        Iterator<Map.Entry<Player, PlayerObject>> playerObjectIterator = visibleObjects.entrySet().iterator();
-        while(playerObjectIterator.hasNext()) {
-            Map.Entry<Player, PlayerObject> entry = playerObjectIterator.next();
-            if(streamDistance < location.distance(playerLocation) && entry.getKey() == player) {
-                entry.getValue().destroy();
-                playerObjectIterator.remove();
-                return;
-            }
-        }
-        if(visibleObjects.containsKey(player))
-            return;
-        if(location.distance(playerLocation) <= streamDistance)
-            createPlayerObject(player);
     }
 
     private void createPlayerObject(Player player) {
@@ -245,6 +223,24 @@ class DynamicSampObjectImpl implements DynamicSampObject {
     }
 
     @Override
+    public void updatePlayer(Player player) {
+        Location playerLocation = player.getLocation().clone();
+        Iterator<Map.Entry<Player, PlayerObject>> playerObjectIterator = visibleObjects.entrySet().iterator();
+        while(playerObjectIterator.hasNext()) {
+            Map.Entry<Player, PlayerObject> entry = playerObjectIterator.next();
+            if(streamDistance < location.distance(playerLocation) && entry.getKey() == player) {
+                entry.getValue().destroy();
+                playerObjectIterator.remove();
+                return;
+            }
+        }
+        if(visibleObjects.containsKey(player))
+            return;
+        if(location.distance(playerLocation) <= streamDistance)
+            createPlayerObject(player);
+    }
+
+    @Override
     public Collection<PlayerDynamicObjectMaterial> getObjectMaterial() {
         Collection<PlayerDynamicObjectMaterial> objectMaterialCollection = new ArrayList<>();
         objectMaterial.entrySet().forEach(set -> objectMaterialCollection.add(set.getValue()));
@@ -263,7 +259,7 @@ class DynamicSampObjectImpl implements DynamicSampObject {
         Collection<Player> oldPlayers = new ArrayList<>();
         visibleObjects.entrySet().stream().filter(obj -> !obj.getValue().isDestroyed()).forEach(obj -> oldPlayers.add(obj.getKey()));
         destroyAllVisibleObjects();
-        oldPlayers.stream().forEach(player -> createAndDeleteObject(player, player.getLocation()));
+        oldPlayers.stream().forEach(this::updatePlayer);
         oldPlayers.clear();
     }
 

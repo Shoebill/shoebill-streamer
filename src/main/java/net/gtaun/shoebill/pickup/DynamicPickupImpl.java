@@ -7,7 +7,6 @@ import net.gtaun.shoebill.event.PlayerPickupDynamicPickup;
 import net.gtaun.shoebill.event.destroyable.DestroyEvent;
 import net.gtaun.shoebill.event.player.PlayerDisconnectEvent;
 import net.gtaun.shoebill.event.player.PlayerPickupEvent;
-import net.gtaun.shoebill.event.player.PlayerUpdateEvent;
 import net.gtaun.shoebill.object.Destroyable;
 import net.gtaun.shoebill.object.Pickup;
 import net.gtaun.shoebill.object.Player;
@@ -20,6 +19,7 @@ import java.util.List;
 
 // Created by marvin on 28.12.14 in project shoebill-streamer.
 // Copyright (c) 2014 Marvin Haschker. All rights reserved.
+@SuppressWarnings("UnusedDeclaration")
 public class DynamicPickupImpl implements DynamicPickup {
 
     public static EventManager eventManager = Shoebill.get().getResourceManager().getPlugin(Streamer.class).getEventManager();
@@ -41,17 +41,6 @@ public class DynamicPickupImpl implements DynamicPickup {
         objectPool.addObject(this);
         this.playersInRange = new ArrayList<>();
         this.eventManagerNode = eventManager.createChildNode();
-        eventManagerNode.registerHandler(PlayerUpdateEvent.class, (e) -> {
-            float distance = e.getPlayer().getLocation().distance(location);
-            if(distance <= streamDistance && !playersInRange.contains(e.getPlayer())) {
-                playersInRange.add(e.getPlayer());
-                createPickup();
-            } else if(distance > streamDistance && playersInRange.contains(e.getPlayer())) {
-                playersInRange.remove(e.getPlayer());
-                if(!isSomebodyInRange())
-                    destroyPickup();
-            }
-        });
         eventManagerNode.registerHandler(PlayerDisconnectEvent.class, (e) -> {
             if(playersInRange.contains(e.getPlayer())) {
                 playersInRange.remove(e.getPlayer());
@@ -67,9 +56,6 @@ public class DynamicPickupImpl implements DynamicPickup {
                 }
             }
         });
-        if(this.id % 50 == 0) {
-            System.out.println("Created id " + this.id);
-        }
     }
 
     private boolean isSomebodyInRange() {
@@ -139,6 +125,19 @@ public class DynamicPickupImpl implements DynamicPickup {
     public void setStreamDistance(float streamDistance) {
         this.streamDistance = streamDistance;
         update();
+    }
+
+    @Override
+    public void updatePlayer(Player player) {
+        float distance = player.getLocation().distance(location);
+        if(distance <= streamDistance && !playersInRange.contains(player)) {
+            playersInRange.add(player);
+            createPickup();
+        } else if(distance > streamDistance && playersInRange.contains(player)) {
+            playersInRange.remove(player);
+            if(!isSomebodyInRange())
+                destroyPickup();
+        }
     }
 
     @Override

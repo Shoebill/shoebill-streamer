@@ -13,6 +13,7 @@ import javax.annotation.Nullable;
 
 // Created by marvin on 28.12.14 in project shoebill-streamer.
 // Copyright (c) 2014 Marvin Haschker. All rights reserved.
+@SuppressWarnings("UnusedDeclaration")
 public interface DynamicLabel extends Destroyable, Updateable {
 
     public static int INVALID_ID = -1;
@@ -84,4 +85,5 @@ public interface DynamicLabel extends Destroyable, Updateable {
 
     boolean isTestLOS();
     void setTestLOS(boolean testLOS);
+
 }
