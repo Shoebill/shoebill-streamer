@@ -36,6 +36,20 @@ public interface DynamicSampObject extends Destroyable, Updateable {
                 (streamDistance == 0.0) ? 200f : streamDistance, drawDistance);
     }
 
+    public static DynamicSampObject create(int modelId, float x, float y, float z, float rX, float rY, float rZ) {
+        return create(modelId, x, y, z, rX, rY, rZ, 0, 0, 210, 200);
+    }
+
+    public static DynamicSampObject create(int modelId, double x, double y, double z, double rX, double rY, double rZ) {
+        return create(modelId, (float)x, (float)y, (float)z, (float)rX, (float)rY, (float)rZ);
+    }
+
+    public static DynamicSampObject create(int modelId, double x, double y, double z, double rX, double rY, double rZ,
+                                           int worldId, int interiorId, double streamDistance, double drawDistance) {
+        return new DynamicSampObjectImpl(modelId, (float)x, (float)y, (float)z, (float)rX, (float)rY, (float)rZ, (worldId == -1) ? 0 : worldId, (interiorId == -1) ? 0 : interiorId,
+                (streamDistance == 0.0) ? 200f : (float)streamDistance, (float)drawDistance);
+    }
+
     /**
      * Creates an dynamic samp object.
      * @param modelId The modelid of the object
