@@ -6,6 +6,7 @@ import net.gtaun.shoebill.constant.ObjectMaterialTextAlign;
 import net.gtaun.shoebill.data.*;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Collection;
 
 // Created by marvin on 27.12.14 in project shoebill-streamer.
@@ -68,9 +69,13 @@ public interface DynamicSampObject extends Destroyable, Updateable {
         return DynamicSampObjectImpl.get(id);
     }
 
+    public static Collection<DynamicSampObject> get() { return new ArrayList<>(objectPool.getAllObjects()); }
+
     public static void destroyAll() {
         DynamicSampObjectImpl.destroyAll();
     }
+
+    int getId();
 
     float getDrawDistance();
     void setDrawDistance(float drawDistance);

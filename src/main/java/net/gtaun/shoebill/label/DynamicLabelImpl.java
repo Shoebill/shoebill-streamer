@@ -203,4 +203,9 @@ class DynamicLabelImpl implements DynamicLabel {
         objectPool.clearAllObjects();
         copyOfLabels.clear();
     }
+
+    @Override
+    public int getId() {
+        return this.id;
+    }
 }

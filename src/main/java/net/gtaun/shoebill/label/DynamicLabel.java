@@ -10,6 +10,8 @@ import net.gtaun.shoebill.object.Vehicle;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
 
 // Created by marvin on 28.12.14 in project shoebill-streamer.
 // Copyright (c) 2014 Marvin Haschker. All rights reserved.
@@ -61,9 +63,13 @@ public interface DynamicLabel extends Destroyable, Updateable {
         return DynamicLabelImpl.get(id);
     }
 
+    public static Collection<DynamicLabel> get() { return new ArrayList<>(objectPool.getAllObjects()); }
+
     public static void destroyAll() {
         DynamicLabelImpl.destroyAll();
     }
+
+    int getId();
 
     String getText();
     void setText(String text);

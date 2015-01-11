@@ -176,4 +176,9 @@ public class DynamicPickupImpl implements DynamicPickup {
         objectPool.clearAllObjects();
         pickupList.clear();
     }
+
+    @Override
+    public int getId() {
+        return this.id;
+    }
 }

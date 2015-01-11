@@ -87,6 +87,11 @@ class DynamicSampObjectImpl implements DynamicSampObject {
     }
 
     @Override
+    public int getId() {
+        return this.id;
+    }
+
+    @Override
     public float getDrawDistance() {
         return drawDistance;
     }

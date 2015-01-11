@@ -5,6 +5,9 @@ import net.gtaun.shoebill.data.Location;
 import net.gtaun.shoebill.data.Updateable;
 import net.gtaun.shoebill.object.Destroyable;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 // Created by marvin on 28.12.14 in project shoebill-streamer.
 // Copyright (c) 2014 Marvin Haschker. All rights reserved.
 @SuppressWarnings("UnusedDeclaration")
@@ -44,9 +47,15 @@ public interface DynamicPickup extends Destroyable, Updateable {
         return DynamicPickupImpl.get(id);
     }
 
+    public static Collection<DynamicPickup> get() {
+        return new ArrayList<>(objectPool.getAllObjects());
+    }
+
     public static void destroyAll() {
         DynamicPickupImpl.destroyAll();
     }
+
+    int getId();
 
     Location getLocation();
     void setLocation(Location location);
