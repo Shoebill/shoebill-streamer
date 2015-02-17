@@ -2,12 +2,15 @@ package net.gtaun.shoebill.object;
 
 import net.gtaun.shoebill.Shoebill;
 import net.gtaun.shoebill.Streamer;
+import net.gtaun.shoebill.constant.ObjectEditResponse;
 import net.gtaun.shoebill.constant.ObjectMaterialSize;
 import net.gtaun.shoebill.constant.ObjectMaterialTextAlign;
 import net.gtaun.shoebill.data.*;
+import net.gtaun.shoebill.event.PlayerEditDynamicObject;
 import net.gtaun.shoebill.event.destroyable.DestroyEvent;
 import net.gtaun.shoebill.event.object.PlayerObjectMovedEvent;
 import net.gtaun.shoebill.event.player.PlayerDisconnectEvent;
+import net.gtaun.shoebill.event.player.PlayerEditPlayerObjectEvent;
 import net.gtaun.util.event.Attentions;
 import net.gtaun.util.event.EventManager;
 import net.gtaun.util.event.EventManagerNode;
@@ -46,6 +49,7 @@ class DynamicSampObjectImpl implements DynamicSampObject {
         this.objectMaterialText = new WeakHashMap<>();
         this.visibleObjects = new WeakHashMap<>();
         eventManager.registerHandler(PlayerDisconnectEvent.class, playerDisconnectEvent -> destroyAllPlayerObjects(playerDisconnectEvent.getPlayer()));
+        Player.getHumans().forEach(this::updatePlayer);
     }
 
     private void destroyAllPlayerObjects(Player player) {
@@ -211,7 +215,24 @@ class DynamicSampObjectImpl implements DynamicSampObject {
     @Override
     public void editObject(Player player) {
         visibleObjects.entrySet().stream().filter(set -> !set.getValue().isDestroyed() && set.getKey() == player)
-                .forEach(set -> set.getKey().editPlayerObject(set.getValue()));
+                .forEach(set -> {
+                    set.getKey().editPlayerObject(set.getValue());
+                    final EventManagerNode node = eventManagerNode.createChildNode();
+                    node.registerHandler(PlayerEditPlayerObjectEvent.class, HandlerPriority.NORMAL, Attentions.create().object(player).object(set.getValue()), (e) -> {
+                        if(e.getObject().getId() == SampObject.INVALID_ID) return;
+                        PlayerEditDynamicObject event = new PlayerEditDynamicObject(player, this, e.getEditResponse());
+                        eventManager.dispatchEvent(event, player, this);
+                        if(e.getEditResponse() == ObjectEditResponse.CANCEL || e.getEditResponse() == ObjectEditResponse.FINAL) {
+                            if (event.isSave()) {
+                                this.location = e.getNewLocation();
+                                this.rotation = e.getNewRotation();
+                                update();
+                            }
+                            node.cancelAll();
+                            node.destroy();
+                        }
+                    });
+                });
     }
 
     @Override

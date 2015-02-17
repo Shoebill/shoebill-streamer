@@ -1,6 +1,7 @@
 package net.gtaun.shoebill.object;
 
 import net.gtaun.shoebill.DynamicObjectPool;
+import net.gtaun.shoebill.Streamer;
 import net.gtaun.shoebill.constant.ObjectMaterialSize;
 import net.gtaun.shoebill.constant.ObjectMaterialTextAlign;
 import net.gtaun.shoebill.data.*;
@@ -33,8 +34,13 @@ public interface DynamicSampObject extends Destroyable, Updateable {
      */
     public static DynamicSampObject create(int modelId, float x, float y, float z, float rX, float rY, float rZ,
                                                 int worldId, int interiorId, float streamDistance, float drawDistance) {
-        return new DynamicSampObjectImpl(modelId, x, y, z, rX, rY, rZ, (worldId == -1) ? 0 : worldId, (interiorId == -1) ? 0 : interiorId,
-                (streamDistance == 0.0) ? 200f : streamDistance, drawDistance);
+        if(!Streamer.isInitialized) {
+            System.err.println("Please insert the Streamer into your plugins section in resources.yml");
+            return null;
+        } else {
+            return new DynamicSampObjectImpl(modelId, x, y, z, rX, rY, rZ, (worldId == -1) ? 0 : worldId, (interiorId == -1) ? 0 : interiorId,
+                    (streamDistance == 0.0) ? 200f : streamDistance, drawDistance);
+        }
     }
 
     public static DynamicSampObject create(int modelId, float x, float y, float z, float rX, float rY, float rZ) {
@@ -47,7 +53,7 @@ public interface DynamicSampObject extends Destroyable, Updateable {
 
     public static DynamicSampObject create(int modelId, double x, double y, double z, double rX, double rY, double rZ,
                                            int worldId, int interiorId, double streamDistance, double drawDistance) {
-        return new DynamicSampObjectImpl(modelId, (float)x, (float)y, (float)z, (float)rX, (float)rY, (float)rZ, (worldId == -1) ? 0 : worldId, (interiorId == -1) ? 0 : interiorId,
+        return create(modelId, (float)x, (float)y, (float)z, (float)rX, (float)rY, (float)rZ, (worldId == -1) ? 0 : worldId, (interiorId == -1) ? 0 : interiorId,
                 (streamDistance == 0.0) ? 200f : (float)streamDistance, (float)drawDistance);
     }
 

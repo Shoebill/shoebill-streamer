@@ -18,6 +18,7 @@ public class Streamer extends Plugin {
         return instance;
     }
 
+    public static boolean isInitialized = false;
     private Logger logger;
     private PlayerLifecycleHolder playerLifecycleHolder;
 
@@ -28,6 +29,7 @@ public class Streamer extends Plugin {
         this.playerLifecycleHolder = new PlayerLifecycleHolder(getEventManager());
         this.playerLifecycleHolder.registerClass(PlayerData.class);
         logger.info("Streamer is ready!");
+        isInitialized = true;
     }
 
     @Override

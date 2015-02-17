@@ -1,6 +1,7 @@
 package net.gtaun.shoebill.pickup;
 
 import net.gtaun.shoebill.DynamicObjectPool;
+import net.gtaun.shoebill.Streamer;
 import net.gtaun.shoebill.data.Location;
 import net.gtaun.shoebill.data.Updateable;
 import net.gtaun.shoebill.object.Destroyable;
@@ -24,7 +25,12 @@ public interface DynamicPickup extends Destroyable, Updateable {
      * @return The created pickup
      */
     public static DynamicPickup create(int modelid, int type, Location location, float streamDistance) {
-        return new DynamicPickupImpl(modelid, type, location, streamDistance);
+        if(!Streamer.isInitialized) {
+            System.err.println("Please insert the Streamer into your plugins section in resources.yml");
+            return null;
+        } else {
+            return new DynamicPickupImpl(modelid, type, location, streamDistance);
+        }
     }
 
     /**

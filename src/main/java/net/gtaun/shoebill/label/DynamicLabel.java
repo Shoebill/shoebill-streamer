@@ -1,6 +1,7 @@
 package net.gtaun.shoebill.label;
 
 import net.gtaun.shoebill.DynamicObjectPool;
+import net.gtaun.shoebill.Streamer;
 import net.gtaun.shoebill.data.Color;
 import net.gtaun.shoebill.data.Location;
 import net.gtaun.shoebill.data.Updateable;
@@ -55,8 +56,12 @@ public interface DynamicLabel extends Destroyable, Updateable {
      */
     public static DynamicLabel create(@Nonnull String text, @Nonnull Color color, @Nonnull Location location, float drawDistance, @Nullable Player attachedPlayer,
                                       @Nullable Vehicle attachedVehicle, boolean testLOS, float streamdistance) {
-
-        return new DynamicLabelImpl(text, color, attachedPlayer, attachedVehicle, location, drawDistance, streamdistance, testLOS);
+        if(!Streamer.isInitialized) {
+            System.err.println("Please insert the Streamer into your plugins section in resources.yml");
+            return null;
+        } else {
+            return new DynamicLabelImpl(text, color, attachedPlayer, attachedVehicle, location, drawDistance, streamdistance, testLOS);
+        }
     }
 
     public static DynamicLabel get(int id) {
