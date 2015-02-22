@@ -220,7 +220,7 @@ class DynamicSampObjectImpl implements DynamicSampObject {
                     final EventManagerNode node = eventManagerNode.createChildNode();
                     node.registerHandler(PlayerEditPlayerObjectEvent.class, HandlerPriority.NORMAL, Attentions.create().object(player).object(set.getValue()), (e) -> {
                         if(e.getObject().getId() == SampObject.INVALID_ID) return;
-                        PlayerEditDynamicObject event = new PlayerEditDynamicObject(player, this, e.getEditResponse());
+                        PlayerEditDynamicObject event = new PlayerEditDynamicObject(player, this, e.getEditResponse(), e.getNewLocation(), e.getNewRotation());
                         eventManager.dispatchEvent(event, player, this);
                         if(e.getEditResponse() == ObjectEditResponse.CANCEL || e.getEditResponse() == ObjectEditResponse.FINAL) {
                             if (event.isSave()) {
