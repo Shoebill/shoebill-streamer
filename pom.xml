@@ -46,14 +46,14 @@
 
     <distributionManagement>
         <repository>
-            <id>gtaun-repo-releases</id>
-            <name>GTAUN Release Repository</name>
-            <url>http://repo.gtaun.net/content/repositories/releases</url>
+            <id>deployment</id>
+            <name>Releases</name>
+            <url>http://151.80.92.137:8081/nexus/content/repositories/releases/</url>
         </repository>
         <snapshotRepository>
-            <id>gtaun-repo-snapshots</id>
-            <name>GTAUN Snapshot Repository</name>
-            <url>http://repo.gtaun.net/content/repositories/snapshots</url>
+            <id>deployment</id>
+            <name>Snapshots</name>
+            <url>http://151.80.92.137:8081/nexus/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 

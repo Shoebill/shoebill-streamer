@@ -89,7 +89,6 @@ public interface DynamicSampObject extends Destroyable, Updateable {
     int getModelId();
     void setModelId(int modelId);
 
-
     float getStreamDistance();
     void setStreamDistance(float streamDistance);
 
