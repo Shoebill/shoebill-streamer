@@ -45,6 +45,7 @@ class DynamicLabelImpl implements DynamicLabel {
         this.eventManagerNode = eventManager.createChildNode();
         this.id = objectPool.pullId();
         this.visibleLabels = new WeakHashMap<>();
+        objectPool.addObject(this);
         eventManagerNode.registerHandler(PlayerDisconnectEvent.class, (e) -> removeLabelForPlayer(e.getPlayer()));
     }
 
