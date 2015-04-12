@@ -13,8 +13,8 @@ import java.util.Collection;
 // Copyright (c) 2014 Marvin Haschker. All rights reserved.
 @SuppressWarnings("UnusedDeclaration")
 public interface DynamicPickup extends Destroyable, Updateable {
-    public static int INVALID_ID = -1;
-    static DynamicObjectPool<DynamicPickup> objectPool = new DynamicObjectPool<>();
+    int INVALID_ID = -1;
+    DynamicObjectPool<DynamicPickup> objectPool = new DynamicObjectPool<>();
 
     /**
      * Creates a dynamic samp pickup.
@@ -24,7 +24,7 @@ public interface DynamicPickup extends Destroyable, Updateable {
      * @param streamDistance The distance when the pickup should be visible (viewDistance)
      * @return The created pickup
      */
-    public static DynamicPickup create(int modelid, int type, Location location, float streamDistance) {
+    static DynamicPickup create(int modelid, int type, Location location, float streamDistance) {
         if(!Streamer.isInitialized) {
             System.err.println("Please insert the Streamer into your plugins section in resources.yml");
             return null;
@@ -45,19 +45,19 @@ public interface DynamicPickup extends Destroyable, Updateable {
      * @param streamDistance The distance when the pickup should be visible (viewDistance)
      * @return The created pickup
      */
-    public static DynamicPickup create(int modelid, int type, float x, float y, float z, int worldId, int interiorId, float streamDistance) {
+    static DynamicPickup create(int modelid, int type, float x, float y, float z, int worldId, int interiorId, float streamDistance) {
         return create(modelid, type, new Location(x, y, z, interiorId, worldId), streamDistance);
     }
 
-    public static DynamicPickup get(int id) {
+    static DynamicPickup get(int id) {
         return DynamicPickupImpl.get(id);
     }
 
-    public static Collection<DynamicPickup> get() {
+    static Collection<DynamicPickup> get() {
         return new ArrayList<>(objectPool.getAllObjects());
     }
 
-    public static void destroyAll() {
+    static void destroyAll() {
         DynamicPickupImpl.destroyAll();
     }
 

@@ -14,8 +14,8 @@ import java.util.Collection;
 // Copyright (c) 2014 Marvin Haschker. All rights reserved.
 public interface DynamicSampObject extends Destroyable, Updateable {
 
-    public static int INVALID_ID = -1;
-    static DynamicObjectPool<DynamicSampObject> objectPool = new DynamicObjectPool<>();
+    int INVALID_ID = -1;
+    DynamicObjectPool<DynamicSampObject> objectPool = new DynamicObjectPool<>();
 
     /**
      * Creates an dynamic samp object.
@@ -32,8 +32,8 @@ public interface DynamicSampObject extends Destroyable, Updateable {
      * @param drawDistance From how far the object should be visible (viewDistance)
      * @return The created object
      */
-    public static DynamicSampObject create(int modelId, float x, float y, float z, float rX, float rY, float rZ,
-                                                int worldId, int interiorId, float streamDistance, float drawDistance) {
+    static DynamicSampObject create(int modelId, float x, float y, float z, float rX, float rY, float rZ,
+                                    int worldId, int interiorId, float streamDistance, float drawDistance) {
         if(!Streamer.isInitialized) {
             System.err.println("Please insert the Streamer into your plugins section in resources.yml");
             return null;
@@ -43,16 +43,16 @@ public interface DynamicSampObject extends Destroyable, Updateable {
         }
     }
 
-    public static DynamicSampObject create(int modelId, float x, float y, float z, float rX, float rY, float rZ) {
+    static DynamicSampObject create(int modelId, float x, float y, float z, float rX, float rY, float rZ) {
         return create(modelId, x, y, z, rX, rY, rZ, 0, 0, 210, 200);
     }
 
-    public static DynamicSampObject create(int modelId, double x, double y, double z, double rX, double rY, double rZ) {
+    static DynamicSampObject create(int modelId, double x, double y, double z, double rX, double rY, double rZ) {
         return create(modelId, (float)x, (float)y, (float)z, (float)rX, (float)rY, (float)rZ);
     }
 
-    public static DynamicSampObject create(int modelId, double x, double y, double z, double rX, double rY, double rZ,
-                                           int worldId, int interiorId, double streamDistance, double drawDistance) {
+    static DynamicSampObject create(int modelId, double x, double y, double z, double rX, double rY, double rZ,
+                                    int worldId, int interiorId, double streamDistance, double drawDistance) {
         return create(modelId, (float)x, (float)y, (float)z, (float)rX, (float)rY, (float)rZ, (worldId == -1) ? 0 : worldId, (interiorId == -1) ? 0 : interiorId,
                 (streamDistance == 0.0) ? 200f : (float)streamDistance, (float)drawDistance);
     }
@@ -66,18 +66,18 @@ public interface DynamicSampObject extends Destroyable, Updateable {
      * @param drawDistance From how far the object should be visible (viewDistance)
      * @return The created object
      */
-    public static DynamicSampObject create(int modelId, @Nonnull Location location, @Nonnull Vector3D rotation, float streamDistance, float drawDistance) {
+    static DynamicSampObject create(int modelId, @Nonnull Location location, @Nonnull Vector3D rotation, float streamDistance, float drawDistance) {
         return new DynamicSampObjectImpl(modelId, location.x, location.y, location.z, rotation.x, rotation.y, rotation.z,
                 location.worldId, location.interiorId, streamDistance, drawDistance);
     }
 
-    public static DynamicSampObject get(int id) {
+    static DynamicSampObject get(int id) {
         return DynamicSampObjectImpl.get(id);
     }
 
-    public static Collection<DynamicSampObject> get() { return new ArrayList<>(objectPool.getAllObjects()); }
+    static Collection<DynamicSampObject> get() { return new ArrayList<>(objectPool.getAllObjects()); }
 
-    public static void destroyAll() {
+    static void destroyAll() {
         DynamicSampObjectImpl.destroyAll();
     }
 

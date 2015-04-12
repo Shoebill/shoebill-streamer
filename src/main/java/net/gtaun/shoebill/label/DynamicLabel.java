@@ -19,8 +19,8 @@ import java.util.Collection;
 @SuppressWarnings("UnusedDeclaration")
 public interface DynamicLabel extends Destroyable, Updateable {
 
-    public static int INVALID_ID = -1;
-    static DynamicObjectPool<DynamicLabel> objectPool = new DynamicObjectPool<>();
+    int INVALID_ID = -1;
+    DynamicObjectPool<DynamicLabel> objectPool = new DynamicObjectPool<>();
 
     /**
      * Creates a dynamic label
@@ -38,8 +38,8 @@ public interface DynamicLabel extends Destroyable, Updateable {
      * @param streamDistance The distance when the label should be created
      * @return The created Dynamic label
      */
-     public static DynamicLabel create(@Nonnull String text, @Nonnull Color color, float x, float y, float z, float drawDistance, @Nullable Player attachedPlayer,
-                                       @Nullable Vehicle attachedVehicle,  boolean testLOS, int worldId, int interiorId, float streamDistance) {
+     static DynamicLabel create(@Nonnull String text, @Nonnull Color color, float x, float y, float z, float drawDistance, @Nullable Player attachedPlayer,
+                                @Nullable Vehicle attachedVehicle, boolean testLOS, int worldId, int interiorId, float streamDistance) {
         return create(text, color, new Location(x, y, z, interiorId, worldId), drawDistance, attachedPlayer, attachedVehicle, testLOS, streamDistance);
      }
 
@@ -54,8 +54,8 @@ public interface DynamicLabel extends Destroyable, Updateable {
      * @param testLOS If the Label should be seen through walls
      * @return The created Dynamic label
      */
-    public static DynamicLabel create(@Nonnull String text, @Nonnull Color color, @Nonnull Location location, float drawDistance, @Nullable Player attachedPlayer,
-                                      @Nullable Vehicle attachedVehicle, boolean testLOS, float streamdistance) {
+    static DynamicLabel create(@Nonnull String text, @Nonnull Color color, @Nonnull Location location, float drawDistance, @Nullable Player attachedPlayer,
+                               @Nullable Vehicle attachedVehicle, boolean testLOS, float streamdistance) {
         if(!Streamer.isInitialized) {
             System.err.println("Please insert the Streamer into your plugins section in resources.yml");
             return null;
@@ -64,13 +64,13 @@ public interface DynamicLabel extends Destroyable, Updateable {
         }
     }
 
-    public static DynamicLabel get(int id) {
+    static DynamicLabel get(int id) {
         return DynamicLabelImpl.get(id);
     }
 
-    public static Collection<DynamicLabel> get() { return new ArrayList<>(objectPool.getAllObjects()); }
+    static Collection<DynamicLabel> get() { return new ArrayList<>(objectPool.getAllObjects()); }
 
-    public static void destroyAll() {
+    static void destroyAll() {
         DynamicLabelImpl.destroyAll();
     }
 
