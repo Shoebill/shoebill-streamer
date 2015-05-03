@@ -48,12 +48,12 @@
         <repository>
             <id>deployment</id>
             <name>Releases</name>
-            <url>http://repo_test.gtaun.net/content/repositories/releases/</url>
+            <url>http://repo.gtaun.net/content/repositories/releases/</url>
         </repository>
         <snapshotRepository>
             <id>deployment</id>
             <name>Snapshots</name>
-            <url>http://repo_test.gtaun.net/content/repositories/snapshots/</url>
+            <url>http://repo.gtaun.net/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
